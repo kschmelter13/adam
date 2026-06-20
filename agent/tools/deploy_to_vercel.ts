@@ -44,6 +44,7 @@ export default defineTool({
     for (const p of relPaths) {
       const abs = `${rootDir.replace(/\/$/, '')}/${p}`
       const res = await sandbox.readBinaryFile({ path: abs })
+      if (!res) continue
       files.push({ path: p, data: Buffer.from(res.content) })
     }
 
