@@ -13,13 +13,19 @@ import type { SessionAuthContext } from 'eve/context'
  */
 function byokHeader(): AuthFn<Request> {
   return (request) => {
-    const key = request.headers.get('x-anthropic-api-key')
-    if (!key) return null
+    const anthropicKey = request.headers.get('x-anthropic-api-key')
+    const githubToken = request.headers.get('x-github-token')
+    if (!anthropicKey && !githubToken) return null
+
+    const attributes: Record<string, string> = {}
+    if (anthropicKey) attributes.anthropicKey = anthropicKey
+    if (githubToken) attributes.githubToken = githubToken
+
     const sessionAuth: SessionAuthContext = {
       authenticator: 'byok-header',
       principalId: 'byok-user',
       principalType: 'byok',
-      attributes: { anthropicKey: key },
+      attributes,
     }
     return sessionAuth
   }

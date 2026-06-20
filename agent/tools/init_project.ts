@@ -4,7 +4,9 @@ import {
   createRepo,
   getAuthenticatedUser,
   getRepo,
+  MISSING_GITHUB_TOKEN_ERROR,
   repoExists,
+  resolveGithubToken,
 } from '../../lib/github.js'
 
 export default defineTool({
@@ -31,15 +33,9 @@ export default defineTool({
       .default([])
       .describe('Env var names the built agent needs at runtime (e.g. ["ANTHROPIC_API_KEY"]). The user pastes these at Vercel import time.'),
   }),
-  async execute({ projectName, description, isPrivate, requiredEnvVars }) {
-    const ghToken = process.env.GITHUB_TOKEN
-    if (!ghToken) {
-      return {
-        ok: false as const,
-        error:
-          'GITHUB_TOKEN missing — generate one at https://github.com/settings/tokens with `repo` scope and set it on this project.',
-      }
-    }
+  async execute({ projectName, description, isPrivate, requiredEnvVars }, ctx) {
+    const ghToken = resolveGithubToken(ctx.session.auth.current)
+    if (!ghToken) return { ok: false as const, error: MISSING_GITHUB_TOKEN_ERROR }
 
     try {
       const me = await getAuthenticatedUser(ghToken)

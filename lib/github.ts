@@ -1,5 +1,23 @@
 const API = 'https://api.github.com'
 
+/**
+ * Resolves the GitHub token to use for this turn. Per-session header
+ * (shared-deployment BYOK) wins; deployer-wide env var is the fallback for
+ * personal deployments.
+ */
+export function resolveGithubToken(
+  sessionAuth?: {
+    attributes?: Readonly<Record<string, string | readonly string[]>>
+  } | null,
+): string | null {
+  const fromSession = sessionAuth?.attributes?.githubToken
+  if (typeof fromSession === 'string' && fromSession.length > 0) return fromSession
+  return process.env.GITHUB_TOKEN ?? null
+}
+
+export const MISSING_GITHUB_TOKEN_ERROR =
+  'GitHub token missing — pass `x-github-token` header on this session, or set GITHUB_TOKEN on the deployment.'
+
 export type Repo = {
   owner: string
   name: string

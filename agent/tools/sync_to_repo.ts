@@ -1,6 +1,10 @@
 import { defineTool } from 'eve/tools'
 import { z } from 'zod'
-import { authenticatedCloneUrl } from '../../lib/github.js'
+import {
+  authenticatedCloneUrl,
+  MISSING_GITHUB_TOKEN_ERROR,
+  resolveGithubToken,
+} from '../../lib/github.js'
 
 export default defineTool({
   description:
@@ -25,14 +29,8 @@ export default defineTool({
       .describe('Branch to push to. Defaults to main.'),
   }),
   async execute({ repoOwner, repoName, rootDir, message, branch }, ctx) {
-    const ghToken = process.env.GITHUB_TOKEN
-    if (!ghToken) {
-      return {
-        ok: false as const,
-        error:
-          'GITHUB_TOKEN missing — generate one at https://github.com/settings/tokens with `repo` scope.',
-      }
-    }
+    const ghToken = resolveGithubToken(ctx.session.auth.current)
+    if (!ghToken) return { ok: false as const, error: MISSING_GITHUB_TOKEN_ERROR }
 
     const sandbox = await ctx.getSandbox()
     const dir = JSON.stringify(rootDir)
