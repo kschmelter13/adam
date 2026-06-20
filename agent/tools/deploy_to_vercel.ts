@@ -17,7 +17,7 @@ export default defineTool({
       .default('.')
       .describe('Subdirectory of the sandbox to upload. Defaults to the sandbox root.'),
     env: z
-      .record(z.string())
+      .record(z.string(), z.string())
       .optional()
       .describe('Env vars set on the deployment (e.g. ANTHROPIC_API_KEY for the agent being deployed)'),
     target: z.enum(['preview', 'production']).optional().default('preview'),
