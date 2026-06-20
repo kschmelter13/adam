@@ -23,9 +23,9 @@ export default defineTool({
     target: z.enum(['preview', 'production']).optional().default('preview'),
   }),
   async execute({ projectName, rootDir, env, target }, ctx) {
-    const token = process.env.VERCEL_TOKEN
-    if (!token) return { ok: false as const, error: 'VERCEL_TOKEN missing from environment' }
-    const teamId = process.env.VERCEL_TEAM_ID || undefined
+    const token = process.env.ADAM_VERCEL_TOKEN
+    if (!token) return { ok: false as const, error: 'ADAM_VERCEL_TOKEN missing from environment — generate one at https://vercel.com/account/tokens and set it on this project' }
+    const teamId = process.env.ADAM_VERCEL_TEAM_ID || undefined
 
     const sandbox = await ctx.getSandbox()
 

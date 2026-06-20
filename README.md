@@ -6,7 +6,7 @@ Built on [Vercel Eve](https://vercel.com/docs/eve). Talk to adam, describe the a
 
 ## Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkschmelter13%2Fadam&env=ANTHROPIC_API_KEY,VERCEL_TOKEN&envDescription=ANTHROPIC_API_KEY+powers+adam%27s+brain.+VERCEL_TOKEN+is+a+personal+access+token+adam+uses+to+deploy+the+agents+it+builds+to+your+account.&envLink=https%3A%2F%2Fgithub.com%2Fkschmelter13%2Fadam%23env-vars&project-name=adam)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkschmelter13%2Fadam&env=ANTHROPIC_API_KEY,ADAM_VERCEL_TOKEN&envDescription=ANTHROPIC_API_KEY+powers+adam%27s+brain.+ADAM_VERCEL_TOKEN+is+a+personal+access+token+adam+uses+to+deploy+the+agents+it+builds+to+your+account.&envLink=https%3A%2F%2Fgithub.com%2Fkschmelter13%2Fadam%23env-vars&project-name=adam)
 
 Click the button. Fill in two env vars. Done.
 
@@ -15,8 +15,8 @@ Click the button. Fill in two env vars. Done.
 | Name | Where it comes from |
 |---|---|
 | `ANTHROPIC_API_KEY` | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
-| `VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) — create a personal access token, give it full account scope |
-| `VERCEL_TEAM_ID` (optional) | Set if you want adam to deploy into a specific team rather than your personal scope |
+| `ADAM_VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) — create a personal access token, give it full account scope. Named `ADAM_*` so Vercel's deploy form doesn't auto-fill it with a non-functional system placeholder. |
+| `ADAM_VERCEL_TEAM_ID` (optional) | Set if you want adam to deploy into a specific team rather than your personal scope |
 
 ## Use it
 
