@@ -1,7 +1,8 @@
-import { anthropic } from '@ai-sdk/anthropic'
 import { defineAgent } from 'eve'
+import { dynamicAnthropic } from '../lib/dynamic-anthropic.js'
 
 export default defineAgent({
-  model: anthropic('claude-opus-4-8'),
+  model: dynamicAnthropic,
+  modelContextWindowTokens: 200_000,
   compaction: { thresholdPercent: 0.75 },
 })
