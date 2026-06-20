@@ -20,19 +20,17 @@ Click the button. Fill in two env vars. Done.
 
 ## Use it
 
-Once deployed, your adam lives at `https://your-deployment.vercel.app`. Start a session:
+Once deployed, open `https://your-deployment.vercel.app` in a browser. There's a chat UI — describe the agent you want, adam writes it into the sandbox, then deploys to your Vercel account when the project is ready.
+
+If you'd rather hit the HTTP endpoint directly:
 
 ```bash
 curl -X POST https://your-deployment.vercel.app/eve/v1/session \
   -H 'content-type: application/json' \
-  -d '{"message":"build me an Eve agent that posts a daily summary of my GitHub activity to Slack"}'
+  -d '{"message":"build me an Eve agent that posts a daily GitHub-activity summary to Slack"}'
 ```
 
-The response includes a session id. Stream events:
-
-```bash
-curl https://your-deployment.vercel.app/eve/v1/session/<sessionId>/stream
-```
+The response includes a session id. Stream events from `/eve/v1/session/<sessionId>/stream`.
 
 When adam decides the project is ready, it calls `deploy_to_vercel` — you get a new live URL on your account.
 

@@ -1,0 +1,140 @@
+:root {
+  --bg: #0a0a0a;
+  --fg: #ededed;
+  --muted: #888;
+  --border: #222;
+  --accent: #fafafa;
+  --error: #ff6b6b;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 16px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.thread {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 24px 0;
+}
+
+.empty ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.empty li {
+  margin: 4px 0;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg .role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.msg .body {
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.msg.user .body {
+  color: var(--accent);
+}
+
+.error {
+  color: var(--error);
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.composer textarea {
+  flex: 1;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 15px;
+  resize: none;
+  outline: none;
+}
+
+.composer textarea:focus {
+  border-color: var(--muted);
+}
+
+.composer button {
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  border-radius: 6px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.composer button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
