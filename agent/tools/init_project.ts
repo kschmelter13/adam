@@ -6,32 +6,32 @@ import {
   getRepo,
   repoExists,
 } from '../../lib/github.js'
-import { createProjectFromGit, getProject } from '../../lib/vercel.js'
 
 export default defineTool({
   description:
-    "Create a GitHub repo for a new agent and link it to a Vercel project so every push auto-deploys. This is the FIRST step when starting a new agent. Use a short kebab-case name. The repo defaults to private. Returns the repo + Vercel project info — adam should remember these for subsequent sync_to_repo calls.",
+    "Create a GitHub repo for a new agent. Returns the repo URL plus a one-click Vercel import deeplink the user clicks once to set up auto-deploy. Use this as the FIRST step when starting a new agent. Pick a short kebab-case name. Defaults to a private repo. Remember the repoOwner + repoName for subsequent sync_to_repo calls.",
   inputSchema: z.object({
     projectName: z
       .string()
       .regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase alphanumeric and hyphens')
       .max(52)
-      .describe('Short kebab-case name. Used as both the GitHub repo name and the Vercel project name.'),
+      .describe('Short kebab-case name. Used as the GitHub repo name.'),
     description: z
       .string()
       .optional()
-      .describe('One-line description of what the agent does. Stored on both the repo and the Vercel project.'),
+      .describe('One-line description of what the agent does. Stored on the repo.'),
     isPrivate: z
       .boolean()
       .optional()
       .default(true)
       .describe('Repo visibility. Defaults to private.'),
-    env: z
-      .record(z.string(), z.string())
+    requiredEnvVars: z
+      .array(z.string())
       .optional()
-      .describe('Env vars set on the Vercel project (e.g. ANTHROPIC_API_KEY for the built agent at runtime).'),
+      .default([])
+      .describe('Env var names the built agent needs at runtime (e.g. ["ANTHROPIC_API_KEY"]). The user pastes these at Vercel import time.'),
   }),
-  async execute({ projectName, description, isPrivate, env }) {
+  async execute({ projectName, description, isPrivate, requiredEnvVars }) {
     const ghToken = process.env.GITHUB_TOKEN
     if (!ghToken) {
       return {
@@ -40,23 +40,16 @@ export default defineTool({
           'GITHUB_TOKEN missing — generate one at https://github.com/settings/tokens with `repo` scope and set it on this project.',
       }
     }
-    const vercelToken = process.env.ADAM_VERCEL_TOKEN
-    if (!vercelToken) {
-      return {
-        ok: false as const,
-        error:
-          'ADAM_VERCEL_TOKEN missing — generate one at https://vercel.com/account/tokens and set it on this project.',
-      }
-    }
-    const teamId = process.env.ADAM_VERCEL_TEAM_ID || undefined
 
     try {
       const me = await getAuthenticatedUser(ghToken)
       const owner = me.login
 
       let repo
+      let created: boolean
       if (await repoExists(ghToken, owner, projectName)) {
         repo = await getRepo(ghToken, owner, projectName)
+        created = false
       } else {
         repo = await createRepo({
           token: ghToken,
@@ -64,62 +57,62 @@ export default defineTool({
           description,
           private: isPrivate,
         })
+        created = true
       }
 
-      const existingProject = await getProject({
-        token: vercelToken,
-        teamId,
-        idOrName: projectName,
+      const importUrl = buildVercelImportUrl({
+        repoOwner: repo.owner,
+        repoName: repo.name,
+        projectName,
+        envVars: requiredEnvVars,
       })
-
-      const project =
-        existingProject ??
-        (await createProjectFromGit({
-          token: vercelToken,
-          teamId,
-          name: projectName,
-          repoOwner: repo.owner,
-          repoName: repo.name,
-          framework: 'nextjs',
-          env,
-        }))
 
       return {
         ok: true as const,
+        created,
         repo: {
           owner: repo.owner,
           name: repo.name,
           url: repo.htmlUrl,
           defaultBranch: repo.defaultBranch,
         },
-        project: {
-          id: project.id,
-          name: project.name,
-          url: project.url,
-          dashboardUrl: `https://vercel.com/dashboard/${project.name}`,
-        },
-        reused: {
-          repo: repo.htmlUrl ? false : true,
-          project: !!existingProject,
+        import: {
+          url: importUrl,
+          instructions: created
+            ? `Click the URL, pick your Vercel team, paste any required env vars (${requiredEnvVars.join(', ') || 'none'}), click Deploy. After this one-time import, every git push to this repo will auto-deploy.`
+            : `Repo already exists. If you've already imported it to Vercel, no action needed — sync_to_repo will trigger the next deploy. Otherwise click the import URL.`,
+          requiredEnvVars,
         },
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      if (message.includes('Resource not accessible by personal access token') || message.includes('Bad credentials')) {
+      if (
+        message.includes('Resource not accessible by personal access token') ||
+        message.includes('Bad credentials')
+      ) {
         return {
           ok: false as const,
           error:
             'GitHub token rejected. Ensure the PAT has `repo` scope (or fine-grained: Contents RW, Administration RW, Metadata read).',
         }
       }
-      if (message.includes('not_found') && message.includes('gitRepository')) {
-        return {
-          ok: false as const,
-          error:
-            "Vercel can't see this GitHub repo — install Vercel's GitHub App in your account (https://vercel.com/dashboard → Integrations) and try again. Repo created; only the Vercel link failed.",
-        }
-      }
       return { ok: false as const, error: message }
     }
   },
 })
+
+function buildVercelImportUrl(opts: {
+  repoOwner: string
+  repoName: string
+  projectName: string
+  envVars: readonly string[]
+}): string {
+  const params = new URLSearchParams({
+    s: `https://github.com/${opts.repoOwner}/${opts.repoName}`,
+    'project-name': opts.projectName,
+  })
+  if (opts.envVars.length > 0) {
+    params.set('env', opts.envVars.join(','))
+  }
+  return `https://vercel.com/new?${params.toString()}`
+}

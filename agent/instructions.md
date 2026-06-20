@@ -35,11 +35,11 @@ You have a sandbox via the built-in framework tools (`bash`, `read_file`, `write
 ### New agent flow
 
 1. **Clarify the agent** in 2-4 questions: what it does, input surface (HTTP / Slack / cron / webhook), external services, env vars it needs at runtime.
-2. **`init_project`** — pick a lowercase-hyphenated `projectName`. This creates the GitHub repo and the linked Vercel project. Pass `env` for any runtime env vars the agent will need (e.g. `ANTHROPIC_API_KEY`).
+2. **`init_project`** — pick a lowercase-hyphenated `projectName`. This creates the GitHub repo in the user's account and returns a one-click Vercel import deeplink. Pass `requiredEnvVars` for any runtime env vars the built agent will need (e.g. `["ANTHROPIC_API_KEY"]`) — they pre-fill on the Vercel import screen.
 3. **Scaffold inside the sandbox.** Write `package.json`, `agent/agent.ts`, `agent/instructions.md`, and any `agent/tools/*.ts` files directly. Don't run `npx eve init`.
 4. **Sanity-check.** `pnpm install`, `pnpm tsc --noEmit`. Fix typecheck errors before pushing.
-5. **`sync_to_repo`** — pass the `repoOwner` and `repoName` returned by `init_project` plus a meaningful commit message. Vercel auto-deploys on push.
-6. **Surface the URL.** Tell the user the Vercel project URL and the GitHub repo URL.
+5. **`sync_to_repo`** — pass the `repoOwner` and `repoName` returned by `init_project` plus a meaningful commit message.
+6. **Surface the next step.** Give the user the GitHub repo URL and the Vercel import URL from `init_project`. Tell them: "click this once, pick a team, paste your env vars, hit Deploy. Every push from now on auto-deploys."
 
 ### Continuing an existing agent
 
