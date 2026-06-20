@@ -1,7 +1,7 @@
 "use client";
 
 import { useEveAgent } from "eve/react";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, KeyIcon } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -15,14 +15,27 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { cn } from "@/lib/utils";
 import { AgentMessage } from "./agent-message";
+import type { ByokKeys } from "./use-byok-keys";
 
 const AGENT_NAME = "adam";
 const BETA_TERMS_HREF = "https://vercel.com/docs/release-phases/public-beta-agreement";
 
 type AgentStatus = ReturnType<typeof useEveAgent>["status"];
 
-export function AgentChat() {
-  const agent = useEveAgent();
+export function AgentChat({
+  keys,
+  onEditKeys,
+}: {
+  readonly keys: ByokKeys;
+  readonly onEditKeys: () => void;
+  readonly onClearKeys?: () => void;
+}) {
+  const agent = useEveAgent({
+    headers: () => ({
+      "x-anthropic-api-key": keys.anthropicKey,
+      "x-github-token": keys.githubToken,
+    }),
+  });
   const isBusy = agent.status === "submitted" || agent.status === "streaming";
   const isEmpty = agent.data.messages.length === 0;
 
@@ -56,6 +69,15 @@ export function AgentChat() {
           >
             Public preview
           </a>
+          <button
+            type="button"
+            onClick={onEditKeys}
+            className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs transition-colors hover:bg-muted hover:text-foreground"
+            title="Edit Anthropic + GitHub keys"
+          >
+            <KeyIcon className="size-3" />
+            keys
+          </button>
         </header>
       )}
 
@@ -101,14 +123,24 @@ export function AgentChat() {
         {isEmpty ? (
           <div className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-medium text-5xl tracking-tighter">{AGENT_NAME}</h1>
-            <a
-              className="rounded-full border border-amber-500/30 px-2 py-0.5 font-medium text-amber-700 text-xs transition-colors hover:bg-amber-500/10 dark:text-amber-300"
-              href={BETA_TERMS_HREF}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Public preview
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                className="rounded-full border border-amber-500/30 px-2 py-0.5 font-medium text-amber-700 text-xs transition-colors hover:bg-amber-500/10 dark:text-amber-300"
+                href={BETA_TERMS_HREF}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Public preview
+              </a>
+              <button
+                type="button"
+                onClick={onEditKeys}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground text-xs transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <KeyIcon className="size-3" />
+                edit keys
+              </button>
+            </div>
           </div>
         ) : null}
         <div className="w-full">{composer}</div>

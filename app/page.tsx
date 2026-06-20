@@ -1,5 +1,5 @@
-import { AgentChat } from "@/app/_components/agent-chat";
+import { ChatGate } from "@/app/_components/chat-gate";
 
 export default function Page() {
-  return <AgentChat />;
+  return <ChatGate />;
 }
