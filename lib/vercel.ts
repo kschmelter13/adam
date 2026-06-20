@@ -82,3 +82,107 @@ export async function deployToVercel(opts: DeployOptions): Promise<DeployResult>
     inspectorUrl: body.inspectorUrl ?? '',
   }
 }
+
+export type VercelProject = {
+  id: string
+  name: string
+  accountId: string
+  url: string
+}
+
+export async function getProject(opts: {
+  token: string
+  teamId?: string
+  idOrName: string
+}): Promise<VercelProject | null> {
+  const teamQuery = opts.teamId ? `?teamId=${encodeURIComponent(opts.teamId)}` : ''
+  const res = await fetch(`${API}/v9/projects/${encodeURIComponent(opts.idOrName)}${teamQuery}`, {
+    headers: { Authorization: `Bearer ${opts.token}` },
+  })
+  if (res.status === 404) return null
+  if (!res.ok) {
+    throw new Error(`getProject ${res.status}: ${(await res.text()).slice(0, 500)}`)
+  }
+  const body = (await res.json()) as { id: string; name: string; accountId: string }
+  return {
+    id: body.id,
+    name: body.name,
+    accountId: body.accountId,
+    url: `https://${body.name}.vercel.app`,
+  }
+}
+
+export async function createProjectFromGit(opts: {
+  token: string
+  teamId?: string
+  name: string
+  repoOwner: string
+  repoName: string
+  framework?: string | null
+  env?: Record<string, string>
+}): Promise<VercelProject> {
+  const teamQuery = opts.teamId ? `?teamId=${encodeURIComponent(opts.teamId)}` : ''
+  const envEntries = Object.entries(opts.env ?? {}).map(([key, value]) => ({
+    key,
+    value,
+    target: ['production', 'preview', 'development'],
+    type: 'encrypted' as const,
+  }))
+  const res = await fetch(`${API}/v10/projects${teamQuery}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${opts.token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: opts.name,
+      framework: opts.framework ?? 'nextjs',
+      gitRepository: {
+        type: 'github',
+        repo: `${opts.repoOwner}/${opts.repoName}`,
+      },
+      environmentVariables: envEntries,
+    }),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`createProjectFromGit ${res.status}: ${body.slice(0, 800)}`)
+  }
+  const body = (await res.json()) as { id: string; name: string; accountId: string }
+  return {
+    id: body.id,
+    name: body.name,
+    accountId: body.accountId,
+    url: `https://${body.name}.vercel.app`,
+  }
+}
+
+export async function setProjectEnv(opts: {
+  token: string
+  teamId?: string
+  projectId: string
+  env: Record<string, string>
+}): Promise<void> {
+  const teamQuery = opts.teamId ? `?teamId=${encodeURIComponent(opts.teamId)}` : ''
+  for (const [key, value] of Object.entries(opts.env)) {
+    const res = await fetch(
+      `${API}/v10/projects/${opts.projectId}/env${teamQuery}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${opts.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key,
+          value,
+          target: ['production', 'preview', 'development'],
+          type: 'encrypted',
+        }),
+      },
+    )
+    if (!res.ok && res.status !== 409) {
+      throw new Error(`setProjectEnv ${key} ${res.status}: ${(await res.text()).slice(0, 500)}`)
+    }
+  }
+}
