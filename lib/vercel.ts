@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 
 const API = 'https://api.vercel.com'
 
-export type DeployFile = { path: string; data: Buffer }
+export type DeployFile = { path: string; data: Uint8Array }
 
 export type DeployResult = {
   id: string
@@ -42,7 +42,7 @@ export async function deployToVercel(opts: DeployOptions): Promise<DeployResult>
         'Content-Type': 'application/octet-stream',
         'x-vercel-digest': f.sha,
       },
-      body: f.data,
+      body: new Uint8Array(f.data),
     })
     if (!res.ok) {
       const body = await res.text()

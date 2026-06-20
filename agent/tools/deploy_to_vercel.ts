@@ -40,12 +40,12 @@ export default defineTool({
       .map((p) => p.trim().replace(/^\.\//, ''))
       .filter(Boolean)
 
-    const files: { path: string; data: Buffer }[] = []
+    const files: { path: string; data: Uint8Array }[] = []
     for (const p of relPaths) {
       const abs = `${rootDir.replace(/\/$/, '')}/${p}`
       const res = await sandbox.readBinaryFile({ path: abs })
       if (!res) continue
-      files.push({ path: p, data: Buffer.from(res.content) })
+      files.push({ path: p, data: res })
     }
 
     try {
